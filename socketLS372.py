@@ -18,12 +18,16 @@ server_address = (ip_address, 7777)
 sock.connect(server_address)
 print("Connecting to %s (%s) at %s" % (local_hostname, localfqdn, ip_address))
 
+file = open("socketData.dat", "w")
+returnData = ""
+
 # Possible Terminator characters (as they are referred to as in the manual):
 # CR: carriage return, returns cursor to beginning of line
 # LF or NL: line feed, or new line
 sock.send("*IDN?LF")
 while True:
     data = sock.recv(64) # Wait for up to 1 kbyte of data to be returned (if fewer bytes returned and the instrument signals message complete, the socket terminates and this data is returned)
+    returnData+=data
     print ("Data:")
     if data:
         # output received data
@@ -31,6 +35,7 @@ while True:
     else:
         # no more data -- quit the loop
         print ("no more data.")
+        file.write(returnData)
         print ("----------------\n")
         break
 sock.send("BEEP 1LF") # Should cause the LS372 to beep
@@ -54,3 +59,4 @@ while True:
 #    sock.sendall(new_data)
 
 sock.close()
+file.close()
