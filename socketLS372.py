@@ -38,8 +38,8 @@ while True:
         file.write(returnData)
         print ("----------------\n")
         break
-sock.send("BEEP 1LF") # Should cause the LS372 to beep
-sock.send("*TST?LF") # Self-test: retunrs 0 if no errors, 1 if errors found
+sock.send("BEEP 1") # Should cause the LS372 to beep
+sock.send("*TST?") # Self-test: retunrs 0 if no errors, 1 if errors found
 while True:
     data = sock.recv(64) # Wait for up to 1 kbyte of data to be returned (if fewer bytes returned and the instrument signals message complete, the socket terminates and this data is returned)
     print ("Data:")
@@ -51,6 +51,7 @@ while True:
         print ("no more data.")
         print ("----------------\n")
         break
+sock.send("KRDG?1") # Gets the Kelvin temperature of measurement input channel 1
 
 #randomData = [243,45242,32,43,5,2,"SDF","123W","313"]
 #for ele in randomData:
