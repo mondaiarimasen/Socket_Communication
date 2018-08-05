@@ -32,5 +32,7 @@ plt.show()
 '''
 for i in range(0,8):
 	plt.plot(allData['Time'].values,allData[str(i+1)].values.astype(np.float),color[i])
+plt.legend(('Ch. 1', 'Ch. 2', 'Ch. 3', 'Ch. 4', 'Ch. 5', 'Ch. 6', 'Ch. 7', 'Ch. 8'),
+           loc='upper right')
 plt.gcf().autofmt_xdate()
 plt.show()
