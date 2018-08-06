@@ -15,10 +15,12 @@ channelNames = {1:'PT2 Head', 2:'PT2 Plate', 3:'1 K Plate', 4:'Still', 5:'mK Pla
 
 ## Plotting
 allData = pd.read_csv(fileName)
+print(len(allData['Time'].values))
+
 
 plt.figure(figsize=(12,8))
 for i in range(0,8):
-	plt.plot(allData['Time'].values,allData[str(i+1)].values[::step].astype(np.float),color[i])
+	plt.plot(list(j for j in range(0,len(allData['Time'].values))),allData[str(i+1)].values[::step].astype(np.float),color[i])
 plt.legend(list('Chl. ' + str(i+1) for i in range(0, 8)),loc='upper right')
 plt.gcf().autofmt_xdate() # beautify the x-labels
 plt.gcf().subplots_adjust(bottom=0.15)
@@ -28,7 +30,7 @@ plt.ylabel('Temperature (K)')
 
 for i in range(0,8):
 	plt.figure(figsize=(12,8))
-	plt.plot(allData['Time'].values,allData[str(i+1)].values[::step].astype(np.float),color[i])
+	plt.plot(list(j for j in range(0,len(allData['Time'].values))),allData[str(i+1)].values[::step].astype(np.float))
 	plt.gcf().autofmt_xdate()
 	plt.gcf().subplots_adjust(bottom=0.25)
 	plt.title(channelNames[i+1] + ', (Channel ' + str(i+1) + '), Temperature vs. Time')
