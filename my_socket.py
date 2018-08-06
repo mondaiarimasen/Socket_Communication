@@ -11,6 +11,8 @@ brght = 1 # 0=25%, 1=50%, 2=75%, 3=100%
 date_time = ""
 allTemp = ""
 sleepTime = 60 # how many seconds between temperature taking
+stopDate = "2018-08-06" # write in %Y-%m-%d format
+stopHour = 10 # what hour (in 24 hours) want to stop; ex. if want to stop at 10:00, then stopHour = 10
 
 ## Constants
 rdgst_dict = {"000":"Valid reading is present", "001":"CS OVL", "002":"VCM OVL", "004":"VMIX OVL", "008":"VDIF OVL", "016":"R. OVER", "032":"R. UNDER", "064":"T. OVER", "128":"T. UNDER"}
@@ -27,7 +29,7 @@ server_address = (ip_address, 7777)
 sock.connect(server_address)
 print("Connecting to %s at Port %s" % server_address)
 
-# Identification query
+# Identification query; gives: LSCI,MODEL372,LSA2245,1.3
 sock.send("*IDN?" + term)
 data = sock.recv(1024)
 print("Identification: ")
@@ -70,6 +72,7 @@ else:
 
 ## Starting the data acquisition
 fileName = 'tempData.dat'
+file = open(fileName, 'w')
 print("Time,1,2,3,4,5,6,7,8,")
 file.write("Time,1,2,3,4,5,6,7,8,\n")
 
@@ -104,7 +107,7 @@ while True:
 
     # stops the data taking at 10:00 on Aug. 6, 2018; ran this code over weekend
     # from 20:40 on Aug. 3 to 10:00 on Aug. 6. 2018
-    if datetime.now().strftime('%Y-%m-%d')=='2018-08-06' and int(datetime.now().strftime('%Y-%m-%d %H:%M:%S')[11:13])==10:
+    if date_time[:10]==stopDate and int(date_time[11:13])==stopHour:
         print("YES, ending")
         break
 sock.close()
