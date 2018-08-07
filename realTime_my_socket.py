@@ -11,13 +11,15 @@ from matplotlib import animation
 ## Variables
 ip_address = "192.168.0.12"
 brght = 1 # 0=25%, 1=50%, 2=75%, 3=100%
+start_datetime = ""
 date_time = ""
 allTemp = ""
-sleepTime = 60 # how many seconds between temperature taking
+sleepTime = 60*10 # how many milliseconds between temperature taking
 stopDate = "2018-08-06" # write in %Y-%m-%d format
 stopHour = 10 # what hour (in 24 hours) want to stop; ex. if want to stop at 10:00, then stopHour = 10
 chlTemp = np.zeros(100000)
-recTime = np.arange(100000) 
+recTime = np.empty(100000,dtype='object') 
+x = np.arange(100000)
 
 ## Constants
 rdgst_dict = {"000":"Valid reading is present", "001":"CS OVL", "002":"VCM OVL", "004":"VMIX OVL", "008":"VDIF OVL", "016":"R. OVER", "032":"R. UNDER", "064":"T. OVER", "128":"T. UNDER"}
@@ -70,7 +72,7 @@ print("Checking for errors (0 for none, 1 for errors found):")
 sock.send("*TST?" + term)
 data = sock.recv(1024)
 if data:
-    print("%s"% data)
+    print("error: %s"% data)
 else:
     print("no more data")
     print("-------------\n")
@@ -82,10 +84,19 @@ else:
 #file.write("Time,1,2,3,4,5,6,7,8,\n")
 
 
+
+
 def update(i):
+    print("update begins")
     date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    print date_time
+    print("First date_time: %s" % date_time)
     allTemp = date_time + ","
+    #if i==1: 
+    #    recTime[0] = date_time
+    #else:
+    #    date_timeObj = datetime.strptime(date_time, '%Y-%m-%d %H:%M:%S.%f')
+    #    date_timeObj = date_timeObj + timedelta(milliseconds = sleepTime)
+        
 
     print("Status and Reading of Thermometers:")
     for j in range(0,1):
@@ -108,7 +119,9 @@ def update(i):
             print("Error at Channel %s (RDGK? command)" % str(j+1))
             print("-------------\n")
         chlTemp[i] = float(data)
-    print(allTemp +"\n")
+        recTime[i] = date_time
+    print("allTemp: %s" % allTemp)
+    print("update ends")
     #file.write(allTemp + "\n")
     
 
@@ -117,23 +130,34 @@ line, = ax.plot([], [], 'ko-')
 ax.margins(0.05)
 
 def init():
-    line.set_data(recTime[:2],chlTemp[:2])
+    line.set_data(x[:2],chlTemp[:2])
+    print("in init")
     return line,
 
 def animate(i):
+    print("in animate")
     win = 50
+    print("first i: %s" % i)
     update(i)
-    imin = min(max(0,i - win), len(recTime) - win)
-    xdata = recTime[imin:i]
+    imin = min(max(0,i - win), len(x) - win)
+    xdata = x[imin:i]
     ydata = chlTemp[imin:i]
     line.set_data(xdata, ydata)
+    ax.set_xticklabels(recTime[imin:i],rotation=60)
     ax.relim()
     ax.autoscale()
+    print("in animate 2")
     print(i)
+    print("leaving animate\n")
     return line,
 
-anim = animation.FuncAnimation(fig, animate, init_func=init, interval=sleepTime*10)
+anim = animation.FuncAnimation(fig, animate, interval=sleepTime) #init_func=init, 
 
+print("plotting")
+plt.title("Real Time Temperature of Channel 1 of Cryostat")
+plt.xlabel("Date and Time")
+plt.ylabel("Temperature (K)")
+plt.gcf().subplots_adjust(bottom=0.20)
 plt.show()
 
 sock.close()
