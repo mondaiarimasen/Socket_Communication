@@ -21,6 +21,7 @@ recTime = np.empty(100000,dtype='object')
 x = np.arange(100000)
 repeatlength = 20 # how many points on the x-axis you want
 deg = 90 # rotation degree of x-axis tick labels
+staticXInt = 100 # display the x-axis tick label on the static graph every staticXInt number of data points
 
 ## Constants
 rdgst_dict = {"000":"Valid reading is present", "001":"CS OVL", "002":"VCM OVL", "004":"VMIX OVL", "008":"VDIF OVL", "016":"R. OVER", "032":"R. UNDER", "064":"T. OVER", "128":"T. UNDER"}
@@ -141,28 +142,39 @@ print("date_time after fig, ax: %s" % date_time)
 line, = ax.plot([], [], 'ko-')
 ax.margins(5)
 
-def animate(i):
+def animate(i,*dontMove):
     print("in animate")
     win = repeatlength
     print("first i: %s" % i)
     update(i)
     imin = min(max(0,i - win), len(x) - win)
-    line.set_xdata(x[imin:i])
-    line.set_ydata(chlTemp[imin:i])
-    ax.xaxis.set_ticks(x[imin:i])
-    ax.set_xticklabels(recTime[imin:i]) #,rotation=deg) # can use this instead if don't like plt.gcf().autofmt_xdate(), but warning that rotation of any deg other than 90 can result in confusion, since the tick mark is centered on the horizontal projection of oblique tick label
-    ax.relim()
-    ax.autoscale()
-    if i>repeatlength:
-        ax.set_xlim(i-repeatlength,i)
+    
+    if dontMove:
+        line.set_xdata(x[:i])
+        line.set_ydata(chlTemp[0:i])
+        ax.xaxis.set_ticks(x[:i:staticXInt])
+        ax.set_xticklabels(recTime[:i:staticXInt]) #,rotation=deg) # can use this instead if don't like plt.gcf().autofmt_xdate(), but warning that rotation of any deg other than 90 can result in confusion, since the tick mark is centered on the horizontal projection of oblique tick label
+        ax.relim()
+        ax.autoscale()
+        ax.set_xlim(0,i)
     else:
-        ax.set_xlim(0,repeatlength)
+        line.set_xdata(x[imin:i])
+        line.set_ydata(chlTemp[imin:i])
+        ax.xaxis.set_ticks(x[imin:i])
+        ax.set_xticklabels(recTime[imin:i]) #,rotation=deg) # can use this instead if don't like plt.gcf().autofmt_xdate(), but warning that rotation of any deg other than 90 can result in confusion, since the tick mark is centered on the horizontal projection of oblique tick label
+        ax.relim()
+        ax.autoscale()
+        if i>repeatlength:
+            ax.set_xlim(i-repeatlength,i)
+        else:
+            ax.set_xlim(0,repeatlength)
     print("in animate 2")
     print(i)
     print("leaving animate\n")
     return line,
 
-anim = animation.FuncAnimation(fig, animate, interval=sleepTime) 
+#anim = animation.FuncAnimation(fig, animate(), interval=sleepTime, fargs=(False,)) 
+anim = animation.FuncAnimation(fig, animate, fargs=(False,), interval=sleepTime)
 
 print("plotting")
 plt.title("Real Time Temperature of Channel 2 of Cryostat")
