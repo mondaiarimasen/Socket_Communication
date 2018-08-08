@@ -1,7 +1,10 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Data Acquisition from Cryostat (Oxford Instruments Dilution Refrigerator) %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 mondaiarimasen
 Created August 1, 2018
 
-Data Acquisition from the Cryostat (Oxford Instruments Dilution Refrigerator)
 *****************************************************************************
 I. Motivation
   - want to get the temperature of the 8 channels in the dilution refrigerator
@@ -40,3 +43,5 @@ II. Program Descriptions
 III. Comments
 
   - realTime_my_socket.py is planned to read temperature from all 8 channels
+
+*****************************************************************************
