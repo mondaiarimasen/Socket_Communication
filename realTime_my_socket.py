@@ -1,8 +1,8 @@
-# Victor Zhang, August 7, 2018
+# Victor Zhang, created August 7, 2018
 # Real Time Graphing of Temperature Acquisition from Lake Shore 372 device
 # Python
 import socket
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,7 +11,6 @@ from matplotlib import animation
 ## Variables
 ip_address = "192.168.0.12"
 brght = 1 # 0=25%, 1=50%, 2=75%, 3=100%
-start_datetime = ""
 date_time = ""
 allTemp = ""
 sleepTime = 60*10 # how many milliseconds between temperature taking
@@ -20,6 +19,8 @@ stopHour = 10 # what hour (in 24 hours) want to stop; ex. if want to stop at 10:
 chlTemp = np.zeros(100000)
 recTime = np.empty(100000,dtype='object') 
 x = np.arange(100000)
+repeatlength = 20 # how many points on the x-axis you want
+deg = 90 # rotation degree of x-axis tick labels
 
 ## Constants
 rdgst_dict = {"000":"Valid reading is present", "001":"CS OVL", "002":"VCM OVL", "004":"VMIX OVL", "008":"VDIF OVL", "016":"R. OVER", "032":"R. UNDER", "064":"T. OVER", "128":"T. UNDER"}
@@ -78,28 +79,32 @@ else:
     print("-------------\n")
 
 ## Starting the data acquisition
-#fileName = 'tempData.dat'
-#file = open(fileName, 'w')
-#print("Time,1,2,3,4,5,6,7,8,")
-#file.write("Time,1,2,3,4,5,6,7,8,\n")
+file = open(fileName, 'w')
+file.write("Time,1,2,3,4,5,6,7,8,\n")
 
-
+# sets up the x-axis time labels
+def setTime():
+    date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+    date_timeObj = datetime.strptime(date_time, '%Y-%m-%d %H:%M:%S.%f')
+    # this accounts for the time needed to go from fig = plt.figure() to actually plotting the first point this was used in testing because the time was off by a few milliseconds, and here I am setting up all the x axis labels; couldn't find a way to display the live time on the graph, so I'm approximating it here, but as I said, if it's off, it's off by milliseconds
+    date_timeObj = date_timeObj + timedelta(milliseconds = sleepTime*2+100) 
+    print("date_timeObj = date_time + %s: %s" % (sleepTime, date_timeObj))
+    recTime[0] = date_timeObj.strftime('%Y-%m-%d %H:%M:%S.%f')
+    day = date_timeObj.day
+    for i in range(1,len(recTime)):
+        recTimeObj = datetime.strptime(recTime[i-1], '%Y-%m-%d %H:%M:%S.%f') + timedelta(milliseconds = sleepTime)
+        recTime[i] = recTimeObj.strftime('%Y-%m-%d %H:%M:%S.%f')[:-5]
 
 
 def update(i):
     print("update begins")
-    date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
     print("First date_time: %s" % date_time)
     allTemp = date_time + ","
-    #if i==1: 
-    #    recTime[0] = date_time
-    #else:
-    #    date_timeObj = datetime.strptime(date_time, '%Y-%m-%d %H:%M:%S.%f')
-    #    date_timeObj = date_timeObj + timedelta(milliseconds = sleepTime)
-        
 
     print("Status and Reading of Thermometers:")
-    for j in range(0,1):
+    for j in range(1,2):
+        # sees if the channel being read is responsive (not checking the code, but can do so; dictionary is in constants section at top of file)
         command = "RDGST? " + str(j+1) + term
         sock.send(command)
         data = sock.recv(1024)[:-2]
@@ -109,7 +114,9 @@ def update(i):
             print("Error at Channel %s (RDGST? command)" % str(i+1))
             print("-------------\n")
 
-        command2 = "RDGK? " + str(j+1) + term # interestingly, there is another Kelvin Reading Query: KRDG?, see manual
+        # this actually gets the temperature of the channel
+        # interestingly, there is another Kelvin Reading Query: KRDG?, see manual
+        command2 = "RDGK? " + str(j+1) + term 
         sock.send(command2)
         data = sock.recv(1024)[:-2]
         allTemp += data +","
@@ -119,46 +126,51 @@ def update(i):
             print("Error at Channel %s (RDGK? command)" % str(j+1))
             print("-------------\n")
         chlTemp[i] = float(data)
-        recTime[i] = date_time
+        file.write(date_time+"," + "{:7.4f}".format(chlTemp[i]) + ",,,,,,,,\n")
     print("allTemp: %s" % allTemp)
     print("update ends")
     #file.write(allTemp + "\n")
     
-
-fig, ax = plt.subplots(figsize=(15,8))
+fig = plt.figure(figsize=(15,8))
+ax = fig.add_subplot(1,1,1)
+ax.set_xlim([0,repeatlength])
+setTime()
+# for calibration/testing purposes
+date_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+print("date_time after fig, ax: %s" % date_time)
 line, = ax.plot([], [], 'ko-')
-ax.margins(0.05)
-
-def init():
-    line.set_data(x[:2],chlTemp[:2])
-    print("in init")
-    return line,
+ax.margins(5)
 
 def animate(i):
     print("in animate")
-    win = 50
+    win = repeatlength
     print("first i: %s" % i)
     update(i)
     imin = min(max(0,i - win), len(x) - win)
-    xdata = x[imin:i]
-    ydata = chlTemp[imin:i]
-    line.set_data(xdata, ydata)
-    ax.set_xticklabels(recTime[imin:i],rotation=60)
+    line.set_xdata(x[imin:i])
+    line.set_ydata(chlTemp[imin:i])
+    ax.xaxis.set_ticks(x[imin:i])
+    ax.set_xticklabels(recTime[imin:i]) #,rotation=deg) # can use this instead if don't like plt.gcf().autofmt_xdate(), but warning that rotation of any deg other than 90 can result in confusion, since the tick mark is centered on the horizontal projection of oblique tick label
     ax.relim()
     ax.autoscale()
+    if i>repeatlength:
+        ax.set_xlim(i-repeatlength,i)
+    else:
+        ax.set_xlim(0,repeatlength)
     print("in animate 2")
     print(i)
     print("leaving animate\n")
     return line,
 
-anim = animation.FuncAnimation(fig, animate, interval=sleepTime) #init_func=init, 
+anim = animation.FuncAnimation(fig, animate, interval=sleepTime) 
 
 print("plotting")
-plt.title("Real Time Temperature of Channel 1 of Cryostat")
+plt.title("Real Time Temperature of Channel 2 of Cryostat")
 plt.xlabel("Date and Time")
 plt.ylabel("Temperature (K)")
-plt.gcf().subplots_adjust(bottom=0.20)
+plt.gcf().autofmt_xdate()
+plt.gcf().subplots_adjust(bottom=0.25)
 plt.show()
 
 sock.close()
-#file.close()
+file.close()
