@@ -21,7 +21,7 @@ recTime = np.empty(100000,dtype='object')
 x = np.arange(100000)
 repeatlength = 20 # how many points on the x-axis you want
 deg = 90 # rotation degree of x-axis tick labels
-staticXInt = 100 # display the x-axis tick label on the static graph every staticXInt number of data points
+staticXInt = 1 # display the x-axis tick label on the static graph every staticXInt number of data points
 
 ## Constants
 rdgst_dict = {"000":"Valid reading is present", "001":"CS OVL", "002":"VCM OVL", "004":"VMIX OVL", "008":"VDIF OVL", "016":"R. OVER", "032":"R. UNDER", "064":"T. OVER", "128":"T. UNDER"}
@@ -142,13 +142,12 @@ print("date_time after fig, ax: %s" % date_time)
 line, = ax.plot([], [], 'ko-')
 ax.margins(5)
 
-def animate(i,*dontMove):
+def animate(i,dontMove):
     print("in animate")
     win = repeatlength
     print("first i: %s" % i)
     update(i)
     imin = min(max(0,i - win), len(x) - win)
-    
     if dontMove:
         line.set_xdata(x[:i])
         line.set_ydata(chlTemp[0:i])
