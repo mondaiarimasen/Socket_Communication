@@ -1,5 +1,6 @@
 # Victor Zhang, created August 7, 2018
 # Real Time Graphing of Temperature Acquisition from Lake Shore 372 device
+# version 1.1.0
 # Python
 import socket
 from datetime import datetime, timedelta
@@ -7,13 +8,14 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
+import os, glob # used to check if graph exists; if does, remove and save new one
 
 ## Variables
 ip_address = "192.168.0.12"
 brght = 1 # 0=25%, 1=50%, 2=75%, 3=100%
 date_time = ""
 allTemp = ""
-sleepTime = 60*10 # how many milliseconds between temperature taking
+sleepTime = 1000*1 # how many milliseconds between temperature taking
 stopDate = "2018-08-06" # write in %Y-%m-%d format
 stopHour = 10 # what hour (in 24 hours) want to stop; ex. if want to stop at 10:00, then stopHour = 10
 chlTemp = np.zeros(100000)
@@ -22,6 +24,7 @@ x = np.arange(100000)
 repeatlength = 20 # how many points on the x-axis you want
 deg = 90 # rotation degree of x-axis tick labels
 staticXInt = 1 # display the x-axis tick label on the static graph every staticXInt number of data points
+graphName = 'graphRealTime.png'
 
 ## Constants
 rdgst_dict = {"000":"Valid reading is present", "001":"CS OVL", "002":"VCM OVL", "004":"VMIX OVL", "008":"VDIF OVL", "016":"R. OVER", "032":"R. UNDER", "064":"T. OVER", "128":"T. UNDER"}
@@ -82,6 +85,7 @@ else:
 ## Starting the data acquisition
 file = open(fileName, 'w')
 file.write("Time,1,2,3,4,5,6,7,8,\n")
+file.close()
 
 # sets up the x-axis time labels
 def setTime():
@@ -127,7 +131,9 @@ def update(i):
             print("Error at Channel %s (RDGK? command)" % str(j+1))
             print("-------------\n")
         chlTemp[i] = float(data)
+        file = open(fileName, 'a')
         file.write(date_time+"," + "{:7.4f}".format(chlTemp[i]) + ",,,,,,,,\n")
+        file.close()
     print("allTemp: %s" % allTemp)
     print("update ends")
     #file.write(allTemp + "\n")
@@ -181,7 +187,11 @@ plt.xlabel("Date and Time")
 plt.ylabel("Temperature (K)")
 plt.gcf().autofmt_xdate()
 plt.gcf().subplots_adjust(bottom=0.25)
+if os.path.isfile(graphName):
+    os.remove(graphName)
+anim.save(graphName)
 plt.show()
 
+
 sock.close()
-file.close()
+#file.close()
