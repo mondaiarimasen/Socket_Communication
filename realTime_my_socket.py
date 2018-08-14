@@ -132,7 +132,7 @@ def update(i):
             print("-------------\n")
         chlTemp[i] = float(data)
         file = open(fileName, 'a')
-        file.write(date_time+"," + "{:7.4f}".format(chlTemp[i]) + ",0,0,0,0,0,0,0,\n")
+        file.write(date_time+",0," + "{:7.4f}".format(chlTemp[i]) + ",0,0,0,0,0,0,\n")
         file.close()
     print("allTemp: %s" % allTemp)
     print("update ends")
