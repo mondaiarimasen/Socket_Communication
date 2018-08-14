@@ -1,6 +1,6 @@
 # Victor Zhang, created August 7, 2018
 # Real Time Graphing of Temperature Acquisition from Lake Shore 372 device
-# version 1.1.0
+# version 2.0.0
 # Python
 import socket
 from datetime import datetime, timedelta
@@ -132,7 +132,7 @@ def update(i):
             print("-------------\n")
         chlTemp[i] = float(data)
         file = open(fileName, 'a')
-        file.write(date_time+"," + "{:7.4f}".format(chlTemp[i]) + ",,,,,,,,\n")
+        file.write(date_time+"," + "{:7.4f}".format(chlTemp[i]) + ",0,0,0,0,0,0,0,\n")
         file.close()
     print("allTemp: %s" % allTemp)
     print("update ends")
@@ -179,17 +179,17 @@ def animate(i,dontMove):
     return line,
 
 #anim = animation.FuncAnimation(fig, animate(), interval=sleepTime, fargs=(False,)) 
-anim = animation.FuncAnimation(fig, animate, fargs=(False,), interval=sleepTime)
-
+anim = animation.FuncAnimation(fig, animate, fargs=(False,), interval=sleepTime, repeat=False)
+for filename in glob.glob(graphName[:-4]+"*"):
+    print("found")
 print("plotting")
 plt.title("Real Time Temperature of Channel 2 of Cryostat")
 plt.xlabel("Date and Time")
 plt.ylabel("Temperature (K)")
 plt.gcf().autofmt_xdate()
 plt.gcf().subplots_adjust(bottom=0.25)
-if os.path.isfile(graphName):
-    os.remove(graphName)
-anim.save(graphName)
+
+#anim.save("animationframe.png")
 plt.show()
 
 
