@@ -49,10 +49,10 @@ III. Comments
 
   - realTime_my_socket.py is planned to read temperature from all 8 channels
 
-  - starting August 14, 2018, new directory "Cryo-Monitor" will contain the 
-    programs to read the LS372 in real time, to display the website, and
-    obtain data from the environment (e.g. cooling water flow rate, 
-    temperature of the He compressor, and the temperature and humidity of 
-    the lab
+  - starting August 14, 2018, new directory "Cryo-Data-Acquisition" will 
+    contain the programs to read the LS372 in real time, to display the 
+    website, and obtain data from the environment (e.g. cooling water flow 
+    rate, temperature of the He compressor, and the temperature and humidity 
+    of the lab
 
 *****************************************************************************
